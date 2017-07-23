@@ -1,0 +1,6 @@
+{
+  "workingDir": "./temp/deploy/",
+  "account": "<!-- STORAGE ACCOUNT NAME -->",
+  "container": "react-file-size-d-3-viewer",
+  "accessKey": "<!-- ACCESS KEY -->"
+}

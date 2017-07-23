@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "entry": "./lib/webparts/fileSizeD3Viewer/FileSizeD3ViewerWebPart.js",
+      "manifest": "./src/webparts/fileSizeD3Viewer/FileSizeD3ViewerWebPart.manifest.json",
+      "outputPath": "./dist/file-size-d-3-viewer.bundle.js"
+    }
+  ],
+  "externals": {},
+  "localizedResources": {
+    "fileSizeD3ViewerStrings": "webparts/fileSizeD3Viewer/loc/{locale}.js"
+  }
+}
