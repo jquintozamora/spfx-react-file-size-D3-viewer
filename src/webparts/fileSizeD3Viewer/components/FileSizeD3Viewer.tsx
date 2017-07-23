@@ -1,23 +1,47 @@
 import * as React from 'react';
-import styles from './FileSizeD3Viewer.module.scss';
-import { IFileSizeD3ViewerProps } from './IFileSizeD3ViewerProps';
-import { escape } from '@microsoft/sp-lodash-subset';
 
-export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerProps, void> {
+import styles from './FileSizeD3Viewer.module.scss';
+
+
+import { data } from "../data/mockData";
+import TreeMap from "react-d3-treemap";
+// Include its styles in you build process as well
+import "react-d3-treemap/dist/react.d3.treemap.css";
+import ContainerDimensions from 'react-container-dimensions';
+
+// import React props and state
+import { IFileSizeD3ViewerProps } from './IFileSizeD3ViewerProps';
+import { IFileSizeD3ViewerState } from './IFileSizeD3ViewerState';
+
+export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerProps, IFileSizeD3ViewerState> {
+  constructor(props: IFileSizeD3ViewerProps) {
+    super(props);
+    // set initial state
+    this.state = {
+      items: [],
+      errors: []
+    };
+  }
+
   public render(): React.ReactElement<IFileSizeD3ViewerProps> {
-    return (
-      <div className={styles.fileSizeD3Viewer}>
-        <div className={styles.container}>
-          <div className={`ms-Grid-row ms-bgColor-themeDark ms-fontColor-white ${styles.row}`}>
-            <div className="ms-Grid-col ms-u-lg10 ms-u-xl8 ms-u-xlPush2 ms-u-lgPush1">
-              <span className="ms-font-xl ms-fontColor-white">Welcome to SharePoint!</span>
-              <p className="ms-font-l ms-fontColor-white">Customize SharePoint experiences using Web Parts.</p>
-              <p className="ms-font-l ms-fontColor-white">{escape(this.props.description)}</p>
-              <a href="https://aka.ms/spfx" className={styles.button}>
-                <span className={styles.label}>Learn more</span>
-              </a>
-            </div>
-          </div>
+      return (
+      <div>
+        <ContainerDimensions>
+          {({ width, height }) =>
+            <TreeMap
+              width={width}
+              height={350}
+              data={data}
+              valueUnit={"MB"}
+            />
+          }
+        </ContainerDimensions>
+        <div>
+          {
+            this.state.errors.length > 0
+              ? this.state.errors.map(item => <div>{item.toString()}</div>)
+              : null
+          }
         </div>
       </div>
     );
