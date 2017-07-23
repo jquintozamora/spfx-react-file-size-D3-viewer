@@ -2,6 +2,16 @@ import * as React from 'react';
 
 import styles from './FileSizeD3Viewer.module.scss';
 
+// import PnP JS Core
+import pnp from "sp-pnp-js";
+
+// import models
+import { MyDocument } from "../model/MyDocument";
+import { MyDocumentCollection } from "../model/MyDocumentCollection";
+
+// import custom parsers
+import { SelectDecoratorsParser, SelectDecoratorsArrayParser } from "../parser/SelectDecoratorsParsers";
+
 
 import { data } from "../data/mockData";
 import TreeMap from "react-d3-treemap";
@@ -24,7 +34,7 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
   }
 
   public render(): React.ReactElement<IFileSizeD3ViewerProps> {
-      return (
+    return (
       <div>
         <ContainerDimensions>
           {({ width, height }) =>
@@ -46,4 +56,34 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
       </div>
     );
   }
+
+  public componentDidMount(): void {
+    const libraryName: string = "Documents";
+    console.log("libraryName: " + libraryName);
+    this._readAllFilesSize(libraryName);
+  }
+
+  private async _readAllFilesSize(libraryName: string): Promise<void> {
+    try {
+      // query Item Count for the Library
+      const docs: MyDocument[] = await pnp.sp
+        .web
+        .lists
+        .getByTitle(libraryName)
+        .items
+        .as(MyDocumentCollection)
+        .get(new SelectDecoratorsArrayParser<MyDocument>(MyDocument));
+
+        // Set our Component´s State
+        this.setState({ ...this.state, items: docs });
+    } catch (error) {
+      // set a new state conserving the previous state + the new error
+      console.error(error);
+      this.setState({
+        ...this.state,
+        errors: [...this.state.errors, "Error getting ItemCount for " + libraryName + ". Error: " + error]
+      });
+    }
+  }
+
 }
