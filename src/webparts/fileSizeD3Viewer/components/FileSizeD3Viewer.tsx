@@ -28,7 +28,7 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
     super(props);
     // set initial state
     this.state = {
-      items: [],
+      data: null,
       errors: []
     };
   }
@@ -36,16 +36,7 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
   public render(): React.ReactElement<IFileSizeD3ViewerProps> {
     return (
       <div>
-        <ContainerDimensions>
-          {({ width, height }) =>
-            <TreeMap
-              width={width}
-              height={350}
-              data={data}
-              valueUnit={"MB"}
-            />
-          }
-        </ContainerDimensions>
+        {this._getUIElement()}
         <div>
           {
             this.state.errors.length > 0
@@ -57,10 +48,27 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
     );
   }
 
+
   public componentDidMount(): void {
     const libraryName: string = "Documents";
     console.log("libraryName: " + libraryName);
     this._readAllFilesSize(libraryName);
+  }
+
+  private _getUIElement() {
+    return this.state.data !== null ?
+      <ContainerDimensions>
+        {({ width, height }) =>
+          <TreeMap
+            width={width - 20}
+            height={350}
+            data={this.state.data}
+            valueUnit={"MB"}
+          />
+        }
+      </ContainerDimensions>
+      :
+      <div>Loading...</div>
   }
 
   private async _readAllFilesSize(libraryName: string): Promise<void> {
@@ -74,8 +82,20 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
         .as(MyDocumentCollection)
         .get(new SelectDecoratorsArrayParser<MyDocument>(MyDocument));
 
-        // Set our Component´s State
-        this.setState({ ...this.state, items: docs });
+      const values = docs.map((item: MyDocument) => {
+        const size: number = item.Size;
+        const sizeKB: number = size / 1024;
+        const name: string = item.Name;
+        const id: string = item.Name;
+        return { name, id, value: sizeKB };
+      });
+      const data = {
+        "name": libraryName,
+        "children": values
+      };
+
+      // Set our Component´s State
+      this.setState({ ...this.state, data });
     } catch (error) {
       // set a new state conserving the previous state + the new error
       console.error(error);

@@ -33,17 +33,6 @@ export class MyDocument extends Item {
     return super.get.call(this, parser, getOptions);
   }
 
-  // overrise getAs method with custom parser
-  public getAs<T>(parser?: ODataParser<MyDocument>, getOptions?: FetchOptions): Promise<T> {
-    this
-      ._setCustomQueryFromDecorator("select")
-      ._setCustomQueryFromDecorator("expand");
-    if (parser === undefined) {
-      parser = new SelectDecoratorsParser<MyDocument>(MyDocument);
-    }
-    return super.get.call(this, parser, getOptions);
-  }
-
   private _setCustomQueryFromDecorator(parameter: string): MyDocument {
     const sym: string = getSymbol(parameter);
     // get pre-saved select and expand props from decorators

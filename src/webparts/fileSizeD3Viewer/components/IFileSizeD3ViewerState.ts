@@ -1,4 +1,4 @@
 export interface IFileSizeD3ViewerState {
-  items: any[];
+  data: any;
   errors: string[];
 }
