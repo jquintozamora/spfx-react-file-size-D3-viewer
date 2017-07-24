@@ -79,9 +79,13 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
         .lists
         .getByTitle(libraryName)
         .items
-        .as(MyDocumentCollection)
-        .get(new SelectDecoratorsArrayParser<MyDocument>(MyDocument));
+        .select("FileLeafRef")
+        //.as(MyDocumentCollection)
+        //.get(new SelectDecoratorsArrayParser<MyDocument>(MyDocument));
+        .get();
 
+      //https://jquinto.sharepoint.com/sites/dev/_api/web/Lists/GetByTitle('Documents')/Items(1)
+      debugger;
       const values = docs.map((item: MyDocument) => {
         const size: number = item.Size;
         const sizeKB: number = size / 1024;
