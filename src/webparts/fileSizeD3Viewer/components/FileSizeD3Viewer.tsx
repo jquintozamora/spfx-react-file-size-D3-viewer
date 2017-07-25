@@ -83,7 +83,7 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
         //.as(MyDocumentCollection)
         //.get(new SelectDecoratorsArrayParser<MyDocument>(MyDocument));
         .get();
-
+      // TODO. get all items and parent folders whitin the same query
       //https://jquinto.sharepoint.com/sites/dev/_api/web/Lists/GetByTitle('Documents')/Items(1)
       debugger;
       const values = docs.map((item: MyDocument) => {
