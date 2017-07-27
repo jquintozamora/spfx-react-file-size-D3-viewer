@@ -1,40 +1,48 @@
-import { Item, ODataEntity, ODataParser, FetchOptions, Logger, LogLevel } from "sp-pnp-js";
-import { select, expand } from "../utils/decorators";
-import { SelectDecoratorsParser } from "../parser/SelectDecoratorsParsers";
+import { Folders, ODataEntityArray, ODataParser, FetchOptions, Logger, LogLevel } from "sp-pnp-js";
 
 // symbol emulation as it's not supported on IE
 // consider using polyfill as well
 import { getSymbol } from "../utils/symbol";
 
+import { SelectDecoratorsArrayParser } from "../parser/SelectDecoratorsParsers";
 
-// sample intheriting single Item
-export class MyDocument extends Item {
+// import MyDocument to specify the ItemTemplate
+import { MyFolder } from "./MyFolder";
 
-  @select()
-  public Title: string;
 
-  @select("FileLeafRef")
-  public Name: string;
+export class MyFolderCollection extends Folders {
 
-  @select("File/Length")
-  @expand("File/Length")
-  public Size: number;
+  private ItemTemplate: MyFolder = new MyFolder("");
 
   // override get to enfore select and expand for our fields to always optimize
   public get(parser?: ODataParser<any>, getOptions?: FetchOptions): Promise<any> {
+    // public get(): Promise<MyDocument> {
     this
       ._setCustomQueryFromDecorator("select")
       ._setCustomQueryFromDecorator("expand");
     if (parser === undefined) {
-      parser = ODataEntity(MyDocument);
+      // default parser
+      parser = ODataEntityArray(MyFolder);
     }
     return super.get.call(this, parser, getOptions);
   }
 
-  private _setCustomQueryFromDecorator(parameter: string): MyDocument {
+  // create new method using custom parser
+  public getAsMyDocument(parser?: ODataParser<MyFolder[]>, getOptions?: FetchOptions): Promise<MyFolder[]> {
+    this
+      ._setCustomQueryFromDecorator("select")
+      ._setCustomQueryFromDecorator("expand");
+    if (parser === undefined) {
+      parser = new SelectDecoratorsArrayParser<MyFolder>(MyFolder);
+    }
+    return super.get.call(this, parser, getOptions);
+  }
+
+
+  private _setCustomQueryFromDecorator(parameter: string): MyFolderCollection {
     const sym: string = getSymbol(parameter);
     // get pre-saved select and expand props from decorators
-    const arrayprops: { propName: string, queryName: string }[] = this[sym];
+    const arrayprops: { propName: string, queryName: string }[] = this.ItemTemplate[sym];
     let list: string = "";
     if (arrayprops !== undefined && arrayprops !== null) {
       list = arrayprops.map(i => i.queryName).join(",");

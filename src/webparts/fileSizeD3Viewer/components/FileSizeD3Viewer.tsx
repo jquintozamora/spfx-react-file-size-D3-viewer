@@ -1,27 +1,25 @@
-import * as React from 'react';
+import * as React from "react";
 
-import styles from './FileSizeD3Viewer.module.scss';
+import styles from "./FileSizeD3Viewer.module.scss";
 
 // import PnP JS Core
 import pnp from "sp-pnp-js";
 
 // import models
-import { MyDocument } from "../model/MyDocument";
-import { MyDocumentCollection } from "../model/MyDocumentCollection";
+import { MyDocument, MyFolder, MyFolderCollection, ITreeMapNode } from "../model";
 
 // import custom parsers
-import { SelectDecoratorsParser, SelectDecoratorsArrayParser } from "../parser/SelectDecoratorsParsers";
+import { SelectDecoratorsArrayParser } from "../parser/SelectDecoratorsParsers";
 
 
-import { data } from "../data/mockData";
 import TreeMap from "react-d3-treemap";
-// Include its styles in you build process as well
+// include its styles in you build process as well
 import "react-d3-treemap/dist/react.d3.treemap.css";
-import ContainerDimensions from 'react-container-dimensions';
+import ContainerDimensions from "react-container-dimensions";
 
 // import React props and state
-import { IFileSizeD3ViewerProps } from './IFileSizeD3ViewerProps';
-import { IFileSizeD3ViewerState } from './IFileSizeD3ViewerState';
+import { IFileSizeD3ViewerProps } from "./IFileSizeD3ViewerProps";
+import { IFileSizeD3ViewerState } from "./IFileSizeD3ViewerState";
 
 export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerProps, IFileSizeD3ViewerState> {
   constructor(props: IFileSizeD3ViewerProps) {
@@ -63,49 +61,95 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
             width={width - 20}
             height={350}
             data={this.state.data}
-            valueUnit={"MB"}
+            valueUnit={"KB"}
           />
         }
       </ContainerDimensions>
       :
-      <div>Loading...</div>
+      <div>Loading...</div>;
   }
 
   private async _readAllFilesSize(libraryName: string): Promise<void> {
     try {
-      // query Item Count for the Library
-      const docs: MyDocument[] = await pnp.sp
+
+      let docsInTreeMap: ITreeMapNode[] = [];
+
+      // const itemCountResponse = await pnp.sp
+      //   .web
+      //   .lists
+      //   .getByTitle(libraryName)
+      //   .select("ItemCount")
+      //   .get();
+      // const numberItems: number = itemCountResponse.ItemCount;
+      // console.log(`The list ${libraryName} has ${numberItems} items.`);
+
+      // get all files from root folder (1)
+      // const allFilesRootFolder1: any[] = await pnp.sp
+      //   .web
+      //   .getFolderByServerRelativeUrl("Shared%20Documents")
+      //   .files
+      //   .get();
+      // console.log(allFilesRootFolder1);
+
+      // get all files from root folder (2)
+      const allFilesRootFolder: any[] = await pnp.sp
         .web
         .lists
         .getByTitle(libraryName)
-        .items
-        .select("FileLeafRef")
-        //.as(MyDocumentCollection)
-        //.get(new SelectDecoratorsArrayParser<MyDocument>(MyDocument));
+        .rootFolder
+        .files
         .get();
-
-      //https://jquinto.sharepoint.com/sites/dev/_api/web/Lists/GetByTitle('Documents')/Items(1)
-      debugger;
-      const values = docs.map((item: MyDocument) => {
-        const size: number = item.Size;
+      console.log(allFilesRootFolder);
+      allFilesRootFolder.forEach((item) => {
+        const size: number = item.Length;
         const sizeKB: number = size / 1024;
-        const name: string = item.Name;
-        const id: string = item.Name;
-        return { name, id, value: sizeKB };
+        docsInTreeMap = [...docsInTreeMap, { name: item.Name, value: sizeKB }];
+        // tODO: Include URL clickable link into react-d3-treemap
+        // ServerRelativeUrl
       });
-      const data = {
+
+      const allFolders: MyFolder[] = await pnp.sp
+        .web
+        .lists
+        .getByTitle(libraryName)
+        .rootFolder
+        .folders
+        .as(MyFolderCollection)
+        .filter("ItemCount gt 0")
+        .get(new SelectDecoratorsArrayParser<MyFolder>(MyFolder, true));
+      for (let index: number = 0; index < allFolders.length; index++) {
+        const folder: MyFolder = allFolders[index];
+
+        const files = await pnp.sp
+          .web
+          .getFolderByServerRelativeUrl(folder.FolderUrl)
+          .files
+          .get();
+        let folderFilesInTreeMap: ITreeMapNode[] = [];
+        files.forEach((item) => {
+          const size: number = item.Length;
+          const sizeKB: number = size / 1024;
+          folderFilesInTreeMap = [...folderFilesInTreeMap, { name: item.Name, value: sizeKB }];
+          // tODO: Include URL clickable link into react-d3-treemap
+          // ServerRelativeUrl
+        });
+        const folderNode: ITreeMapNode = { name: folder.FolderName, children: folderFilesInTreeMap };
+        docsInTreeMap = [...docsInTreeMap, folderNode];
+      }
+
+      const data: ITreeMapNode = {
         "name": libraryName,
-        "children": values
+        "children": docsInTreeMap
       };
 
-      // Set our Component´s State
+      // set our Component´s State
       this.setState({ ...this.state, data });
     } catch (error) {
       // set a new state conserving the previous state + the new error
       console.error(error);
       this.setState({
         ...this.state,
-        errors: [...this.state.errors, "Error getting ItemCount for " + libraryName + ". Error: " + error]
+        errors: [...this.state.errors, "Error " + libraryName + ". Error: " + error]
       });
     }
   }

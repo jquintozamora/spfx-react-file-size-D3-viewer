@@ -14,8 +14,6 @@ export class MyDocumentCollection extends Items {
 
   private ItemTemplate: MyDocument = new MyDocument("");
 
-  public CustomCollectionProps: string = "Custom Collection Prop to pass";
-
   // override get to enfore select and expand for our fields to always optimize
   public get(parser?: ODataParser<any>, getOptions?: FetchOptions): Promise<any> {
     // public get(): Promise<MyDocument> {
