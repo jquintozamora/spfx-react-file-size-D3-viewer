@@ -46,7 +46,6 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
     );
   }
 
-
   public componentDidMount(): void {
     const libraryName: string = "Documents";
     console.log("libraryName: " + libraryName);
