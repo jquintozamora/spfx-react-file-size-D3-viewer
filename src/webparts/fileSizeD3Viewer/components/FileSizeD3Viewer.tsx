@@ -114,11 +114,14 @@ export default class FileSizeD3Viewer extends React.Component<IFileSizeD3ViewerP
         .rootFolder
         .folders
         .as(MyFolderCollection)
+        // Filter forms and other empty folders
         .filter("ItemCount gt 0")
         .get(new SelectDecoratorsArrayParser<MyFolder>(MyFolder, true));
+
+
       for (let index: number = 0; index < allFolders.length; index++) {
         const folder: MyFolder = allFolders[index];
-
+        // Todo. Work in bache
         const files = await pnp.sp
           .web
           .getFolderByServerRelativeUrl(folder.FolderUrl)
